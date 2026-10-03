@@ -1,3 +1,4 @@
+from html import escape
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.constants import ParseMode
 from telegram.ext import ContextTypes
@@ -15,7 +16,7 @@ async def admin_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     name = update.effective_user.first_name
     
-    text = f"<b>Halo</b> <code>{name}</code><b>!</b>\n"
+    text = f"<b>Halo</b> <code>{escape(name)}</code><b>!</b>\n"
     text+= "--------------------------\n"
     text+= "Berikut menu khusus untuk admin"
 

@@ -7,7 +7,9 @@ from telegram.ext import ContextTypes
 
 async def monitor_threads(update: Update, context: ContextTypes.DEFAULT_TYPE):
     thread_id   = update.message.message_thread_id
-    recipient_id= context.bot_data['list_threads'][str(thread_id)]
+    recipient_id= context.bot_data['list_threads'].get(str(thread_id))
+    if recipient_id is None:
+        return
 
     await close_order(recipient_id, thread_id, context)
 

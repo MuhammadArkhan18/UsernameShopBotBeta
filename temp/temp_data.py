@@ -2,9 +2,6 @@ from telegram.ext import Application
 from data.core_data import db_path
 from data.database_config import DatabaseManager
 
-#list_users  = {'0': []}
-#list_threads= {'0': 0}
-
 async def initiate_temp_data(application: Application):
     if "list_users" not in application.bot_data:
         application.bot_data['list_users']  = {}
@@ -76,14 +73,3 @@ async def del_user(context, chat_id):
             primary_key = 'user_id',
             value_key   = chat_id
             )
-
-#def input_user(first_name, chat_id, username):
-#    list_users.update({str(chat_id): [first_name, chat_id, username]})
-
-#def del_user(chat_id):
-#    del list_threads[str(list_users[str(chat_id)][3])]
-#    del list_users[str(chat_id)]
-
-#def input_thread_id(chat_id, thread_id):
-#    list_users[str(chat_id)] += [thread_id]
-#    list_threads.update({str(thread_id): chat_id})

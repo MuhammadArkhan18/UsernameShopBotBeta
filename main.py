@@ -5,6 +5,7 @@ from telegram.ext import ApplicationBuilder, ContextTypes, filters, CommandHandl
 from utils.filters import USER_CONTENT_ONLY
 from utils.monitor import monitor_threads
 from utils.identification import user_id, group_id
+from utils.error_global import on_error
 from data.core_data  import TOKEN, id_maingroup, db_path
 from data.database_config import DatabaseManager
 from temp.temp_data import initiate_temp_data
@@ -12,7 +13,7 @@ from menu.start_menu import start
 from menu.admin_menu import admin_menu
 from menu.ban_menu import list_ban_menu, banned_user_menu, unban_user_process
 from conversation_clients.order import order, order_user_session, order_owner_session, ban_user_order
-from broadcast.broadcast_users import broadcast_users, process_broadcast, finish_broadcast, cancel_broadcast
+from broadcast.broadcast_users import broadcast_users, process_broadcast, finish_broadcast, cancel_broadcast, timeout_broadcast
 #--------------------------------FOR DEBUGGING PURPOSES---------------------------------
 
 logging.basicConfig(
@@ -53,15 +54,20 @@ if __name__ == '__main__':
     broadcast_handler = ConversationHandler(
             entry_points= [CallbackQueryHandler(broadcast_users, pattern='^broadcast_users$')],
             states      = {
-                "process_broadcast" : [
+                "process_broadcast"         : [
                     MessageHandler(filters.ChatType.PRIVATE & USER_CONTENT_ONLY & ~filters.COMMAND, process_broadcast),
                     CallbackQueryHandler(finish_broadcast, pattern="^finish_broadcast$")
+                    ],
+                ConversationHandler.TIMEOUT : [
+                    MessageHandler(filters.ALL, timeout_broadcast)
                     ]
                 },
-            fallbacks   = [CallbackQueryHandler(cancel_broadcast, pattern="^cancel$")]
+            fallbacks   = [CallbackQueryHandler(cancel_broadcast, pattern="^cancel$")],
+            conversation_timeout = 600.0
             )
 
     #Registrates the handlers
+    application.add_error_handler(on_error)
     application.add_handler(start_handler)
     application.add_handler(userid_handler)
     application.add_handler(groupid_handler)

@@ -1,3 +1,4 @@
+from html import escape
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.constants import ParseMode
 from telegram.ext import ContextTypes
@@ -23,11 +24,17 @@ async def list_ban_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     order = context.user_data['listban_order_segment']
 
+    if order > total_segments:
+        order = total_segments
+
+    if order < 1:
+        order = 1
+
     if navigation == 'next' and order < total_segments:
         order += 1
         context.user_data['listban_order_segment'] += 1
 
-    elif navigation == 'prev' and order > 1:
+    if navigation == 'prev' and order > 1:
         order -= 1
         context.user_data['listban_order_segment'] -= 1
 
@@ -36,7 +43,7 @@ async def list_ban_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     if len(list_bu) > 0:
         button_user_banned_list = [
-                InlineKeyboardButton(f'{list_bu[str(chat_id)][0]}', callback_data=f'banned_user_menu_{chat_id}') for chat_id in bu_ids[show_rows:len(bu_ids)]
+                InlineKeyboardButton(f'{list_bu[str(chat_id)][0]}', callback_data=f'banned_user_menu_{chat_id}') for chat_id in bu_ids[show_rows:show_rows + 5]
                 ]
 
     else:
@@ -72,12 +79,12 @@ async def banned_user_menu(update: Update, context: ContextTypes):
 
     text = "<b>Data Banned User</b>\n"
     text+= "-------------------------\n"
-    text+= f"<b>Nama:</b> <code>{banned_user_name}</code>\n"
-    text+= f"<b>Username:</b> @{banned_user_username}\n"
+    text+= f"<b>Nama:</b> <code>{escape(banned_user_name)}</code>\n"
+    text+= f"<b>Username:</b> @{escape(banned_user_username)}\n"
     text+= "\n"
     text+= "<i>di ban oleh:</i>\n"
-    text+= f"<b>Admin:</b> <code>{admin_name}</code>\n"
-    text+= f"<b>Username:</b> @{admin_username}"
+    text+= f"<b>Admin:</b> <code>{escape(admin_name)}</code>\n"
+    text+= f"<b>Username:</b> @{escape(admin_username)}"
 
     button_list = [
             InlineKeyboardButton('Kembali', callback_data='banned_user_list'),
@@ -97,13 +104,17 @@ async def banned_user_menu(update: Update, context: ContextTypes):
 @check_user_is_banned
 @check_user_is_admins
 async def unban_user_process(update: Update, context: ContextTypes):
-    await update.callback_query.answer()
-
     banned_user_id  = int(update.callback_query.data[11:])
+
+    if str(banned_user_id) in context.bot_data['list_banned_users']:
+        await update.callback_query.answer('User telah di-unban')
+    else:
+        await update.callback_query.answer()
+        
     banned_user_name= context.bot_data['list_banned_users'][str(banned_user_id)][0]
     await unban_user(context, banned_user_id)
 
-    text = f"<code>{banned_user_name}</code> <i>telah berhasil di <b>un-ban</b>!</i>"
+    text = f"<code>{escape(banned_user_name)}</code> <i>telah berhasil di <b>un-ban</b>!</i>"
 
     button_list = [
             InlineKeyboardButton('Kembali', callback_data='banned_user_list'),
@@ -117,4 +128,4 @@ async def unban_user_process(update: Update, context: ContextTypes):
             reply_markup= reply_markup
             )
 
-    del context.user_data['listban_order_segment']
+    context.user_data.pop('listban_order_segment', None)

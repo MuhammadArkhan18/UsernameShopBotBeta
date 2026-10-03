@@ -1,3 +1,5 @@
 env/
+__pycache__/
 data/bot_database.db
 .env
+*.py.swp

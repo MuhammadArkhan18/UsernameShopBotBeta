@@ -50,9 +50,10 @@ def check_user_in_conversation(func):
     async def wrapped(update, context, *args, **kwargs):
         list_users = context.bot_data['list_users']
         if str(update.effective_chat.id) in list_users:
-            await update.message.reply_text(
-                    text = "<i>Selesaikan percakapan dengan Owner terlebih dahulu yaa</i>",
-                    parse_mode = ParseMode.HTML
+            await context.bot.send_message(
+                    chat_id     = update.effective_chat.id,
+                    text        = "<i>Selesaikan percakapan dengan Owner terlebih dahulu yaa</i>",
+                    parse_mode  = ParseMode.HTML
                     )
             return
         return await func(update, context, *args, **kwargs)
@@ -77,7 +78,6 @@ async def check_user_is_owners(update, context):
                 )
 
         valid_statuses = [
-                ChatMemberStatus.MEMBER,
                 ChatMemberStatus.ADMINISTRATOR,
                 ChatMemberStatus.OWNER
                 ]
@@ -126,6 +126,21 @@ def check_user_is_banned(func):
                 del context.user_data['NOTIFICATION_IDs']
             elif 'listban_order_segment' in context.user_data:
                 del context.user_data['listban_order_segment']
+            return
+        return await func(update, context, *args, **kwargs)
+    return wrapped
+
+def check_user_in_order(func):
+    @wraps(func)
+    async def wrapped(update, context, *args, **kwargs):
+        user_id = update.effective_chat.id
+        if str(user_id) in context.bot_data['list_users']:
+            text = "<i>Sesi check dengan Owner sedang berjalan</i>"
+            await context.bot.send_message(
+                    chat_id     = user_id,
+                    text        = text,
+                    parse_mode  = ParseMode.HTML
+                    )
             return
         return await func(update, context, *args, **kwargs)
     return wrapped
