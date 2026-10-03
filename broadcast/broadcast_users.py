@@ -82,40 +82,28 @@ async def finish_broadcast(update: Update, context: ContextTypes.DEFAULT_TYPE):
             message_id  = message_id
             )
 
-    for user_id in users_id_data:
-        context.application.create_task(
-                send_to_user(context, user_id, update.effective_chat.id, message_ids),
-                update=update
-                )
-
-    if len(notif_message_ids) >= 1:
+    if notif_message_ids:
         await context.bot.delete_messages(
                 chat_id     = update.effective_chat.id,
                 message_ids = notif_message_ids
                 )
 
-    await context.bot.delete_messages(
-            chat_id     = update.effective_chat.id,
-            message_ids = message_ids
+    context.application.create_task(
+            run_broadcast(context, update.effective_chat.id,  users_id_data, message_ids),
+            update=update
             )
 
-    text1 = "<i>Broadcast kamu telah berhasil terkirim</i>"
-    button_list = [
-            InlineKeyboardButton("Kembali", callback_data = 'start_menu')
-            ]
-    reply_markup = InlineKeyboardMarkup(build_menu(button_list, n_cols = 1))
+    text1 = "<i>Broadcast sedang dikirim, hasilnya akan ditampilkan di sini.</i>"
 
     await context.bot.send_message(
             chat_id     = update.effective_chat.id,
             text        = text1,
-            parse_mode  = ParseMode.HTML,
-            reply_markup= reply_markup
+            parse_mode  = ParseMode.HTML
             )
 
     del context.user_data["MESSAGE_ID"]
     del context.user_data["BROADCAST_IDs"]
     del context.user_data["NOTIFICATION_IDs"]
-    context.bot_data['admin_in_broadcast'].remove(update.effective_chat.id)
 
     return ConversationHandler.END
 
@@ -194,34 +182,81 @@ async def timeout_broadcast(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     return ConversationHandler.END
 
+async def run_broadcast(context, admin_chat, user_ids, message_ids):
+    sent = blocked = failed = 0
+    
+    try:
+        for uid in user_ids:
+            result = await send_to_user(context,uid, admin_chat, message_ids)
+            if result == "ok":
+                sent += 1
+            elif result == "blocked":
+                blocked += 1
+            else:
+                failed += 1
+            await asyncio.sleep(0.05 * len(message_ids))
+    
+    finally:
+        for i in range(0, len(message_ids), 100):
+            
+            try:
+                await context.bot.delete_messages(
+                        chat_id = admin_chat,
+                        message_ids = message_ids[i:i+100]
+                        
+                        )
+            except Exception as e:
+                logger.warning("Failed to delete messages: %s", e)
+        
+        context.bot_data['admin_in_broadcast'].remove(admin_chat)
+    
+    text = "<b>Broadcast selesai</b>\n"
+    text+= f"Terkirim: {sent}\n"
+    text+= f"Terblokir: {blocked}\n"
+    text+= f"Gagal: {failed}"
+
+    button_list = [
+            InlineKeyboardButton('Kembali', callback_data='start_menu')
+            ]
+
+    reply_markup = InlineKeyboardMarkup(build_menu(button_list, n_cols=1))
+
+    await context.bot.send_message(
+            chat_id     = admin_chat,
+            text        = text,
+            parse_mode  = ParseMode.HTML,
+            reply_markup= reply_markup
+            )
+
 async def send_to_user(context, user_id, from_chat, message_ids):
     for i in range(0, len(message_ids), 100):
         chunk = message_ids[i:i + 100]
-        print(chunk)
-        try:
-            await context.bot.copy_messages(
-                    chat_id = user_id,
-                    from_chat_id = from_chat,
-                    message_ids = chunk
-                    )
-            
-        except Forbidden:
-            await DatabaseManager(db_path).delete_data(
-                    table_name  = 'users',
-                    primary_key = 'user_id',
-                    value_key   = user_id
-                    )
-            return
 
-        except RetryAfter as e:
-            await asyncio.sleep(e.retry_after + 1)
-            await context.bot.copy_messages(
-                    chat_id     = user_id,
-                    from_chat_id= from_chat,
-                    message_ids = chunk
-                    )
+        for _ in range(3):
+            try:
+                await context.bot.copy_messages(
+                        chat_id     = user_id,
+                        from_chat_id= from_chat,
+                        message_ids = chunk
+                        )
+                break
 
-        except Exception as e:
-            logger.warning("Broadcast to %s failed: %s", user_id, e)
-            return
-    await asyncio.sleep(0.05)
+            except RetryAfter as e:
+                asyncio.sleep(e.retry_after + 1)
+
+            except Forbidden:
+                await DatabaseManager(db_path).delete_data(
+                        table_name  = 'users',
+                        primary_key = 'user_id',
+                        value_key   = user_id
+                        )
+                return "blocked"
+
+            except Exception as e:
+                logger.warning("Failed to send broadcast messages to %s: %s", user_id, e)
+                return "failed"
+        
+        else:
+            return "failed"
+    
+    return "ok"

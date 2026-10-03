@@ -80,7 +80,7 @@ async def banned_user_menu(update: Update, context: ContextTypes):
     text = "<b>Data Banned User</b>\n"
     text+= "-------------------------\n"
     text+= f"<b>Nama:</b> <code>{escape(banned_user_name)}</code>\n"
-    text+= f"<b>Username:</b> @{escape(banned_user_username)}\n"
+    text+= f"<b>Username:</b> {f"@{escape(banned_user_username)}" if banned_user_username else '-'}\n"
     text+= "\n"
     text+= "<i>di ban oleh:</i>\n"
     text+= f"<b>Admin:</b> <code>{escape(admin_name)}</code>\n"
@@ -106,8 +106,9 @@ async def banned_user_menu(update: Update, context: ContextTypes):
 async def unban_user_process(update: Update, context: ContextTypes):
     banned_user_id  = int(update.callback_query.data[11:])
 
-    if str(banned_user_id) in context.bot_data['list_banned_users']:
+    if str(banned_user_id) not in context.bot_data['list_banned_users']:
         await update.callback_query.answer('User telah di-unban')
+        return
     else:
         await update.callback_query.answer()
         

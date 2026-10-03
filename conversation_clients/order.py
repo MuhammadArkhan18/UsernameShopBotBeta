@@ -112,8 +112,9 @@ async def order_owner_session(update: Update, context: ContextTypes.DEFAULT_TYPE
 async def ban_user_order(update: Update, context: ContextTypes.DEFAULT_TYPE):
     ban_user_id         = int(update.callback_query.data[9:])
     
-    if str(ban_user_id) in context.bot_data['list_users']:
+    if str(ban_user_id) not in context.bot_data['list_users']:
         await update.callback_query.answer('Sesi sudah ditutup atau user sudah diban')
+        return
     else:
         await update.callback_query.answer()
     
