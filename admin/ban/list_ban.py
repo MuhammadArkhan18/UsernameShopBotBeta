@@ -21,7 +21,7 @@ async def ban_user(context, user_id, name, username, admin_id, admin_name, admin
 
     await DatabaseManager(db_path).insert_data(
             table_name      = 'banned_by_admins',
-            primary_key     = 'user_id',
+            primary_key     = 'banned_user_id',
             admin_id        = admin_id,
             admin_name      = admin_name,
             admin_username  = admin_username,
@@ -42,8 +42,8 @@ async def unban_user(context, banned_user_id):
 
     await DatabaseManager(db_path).delete_data(
             table_name  = 'banned_by_admins',
-            primary_key = 'user_id',
-            value_key   = user_id
+            primary_key = 'banned_user_id',
+            value_key   = banned_user_id
             )
 
 def update_ban_list_order(n_rows: int, len_ban_list: int):

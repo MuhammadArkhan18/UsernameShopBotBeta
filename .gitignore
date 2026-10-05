@@ -4,3 +4,6 @@ __pycache__/
 data/bot_database.db
 .env
 *.py.swp
+*.db
+*.db-wal
+*.db-shm

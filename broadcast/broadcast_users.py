@@ -242,7 +242,7 @@ async def send_to_user(context, user_id, from_chat, message_ids):
                 break
 
             except RetryAfter as e:
-                asyncio.sleep(e.retry_after + 1)
+                await asyncio.sleep(e.retry_after + 1)
 
             except Forbidden:
                 await DatabaseManager(db_path).delete_data(

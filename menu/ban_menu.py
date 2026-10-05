@@ -84,7 +84,7 @@ async def banned_user_menu(update: Update, context: ContextTypes):
     text+= "\n"
     text+= "<i>di ban oleh:</i>\n"
     text+= f"<b>Admin:</b> <code>{escape(admin_name)}</code>\n"
-    text+= f"<b>Username:</b> @{escape(admin_username)}"
+    text+= f"<b>Username:</b> {f'@{escape(admin_username)}' if admin_username else '-'}"
 
     button_list = [
             InlineKeyboardButton('Kembali', callback_data='banned_user_list'),
