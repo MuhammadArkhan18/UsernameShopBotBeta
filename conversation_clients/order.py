@@ -1,4 +1,4 @@
-import telegram
+import telegram, logging
 from html import escape
 from temp.temp_data import input_user, del_user
 from utils.ui_utility import build_menu
@@ -11,6 +11,8 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.constants import ParseMode
 from telegram.ext import ContextTypes
 from telegram.error import BadRequest, Forbidden
+
+logger = logging.getLogger(__name__)
 
 @private
 @check_user_is_banned
@@ -84,7 +86,7 @@ async def order_user_session(update: Update, context: ContextTypes.DEFAULT_TYPE)
             return
     
     except BadRequest as e:
-        print("ERROR: ", e)
+        logger.warning("ERROR: %s", e)
         await close_order(user_id, topic_id, context)
         return
 
@@ -100,7 +102,7 @@ async def order_owner_session(update: Update, context: ContextTypes.DEFAULT_TYPE
                 chat_id = recipient_id
                 )
     except Exception as e:
-        print(e)
+        logger.warning("ERROR: %s", e)
         text = "<i>Pengguna telah ban atau hapus riwayat percakapan dengan bot ini</i>"
         await update.message.reply_text(
                 text        = text,

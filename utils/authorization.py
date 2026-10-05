@@ -1,3 +1,4 @@
+import logging
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.error import BadRequest
 from telegram.constants import ChatMemberStatus, ParseMode
@@ -5,6 +6,8 @@ from telegram.ext import ConversationHandler
 from functools import wraps
 from data.core_data import id_maingroup, bot_id
 from utils.ui_utility import build_menu
+
+logger = logging.getLogger(__name__)
 
 def restricted(func):
     @wraps(func)
@@ -87,7 +90,7 @@ async def check_user_is_owners(update, context):
 
         return True
     except BadRequest as e:
-        print(f"ERROR {update.effective_user.first_name}|{update.effective_user.id}|@{update.effective_user.username}: {e}")
+        logger.warning("ERROR %s | %s | @ %s : %s", update.effective_user.first_name, update.effective_user.id, update.effective_user.username, e)
         return False
 
 def check_conversation_available(func):
