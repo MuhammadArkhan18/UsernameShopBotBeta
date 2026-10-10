@@ -51,7 +51,7 @@ async def list_ban_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
         button_user_banned_list = list()
 
     raw_button_navigation   = [
-            InlineKeyboardButton(emojize(':left_arrow'), callback_data='banned_user_list_prev') if order != 1 else None,
+            InlineKeyboardButton(emojize(':left_arrow:'), callback_data='banned_user_list_prev') if order != 1 else None,
             InlineKeyboardButton(emojize(':globe_with_meridians: Menu Admin :globe_with_meridians:'), callback_data='admin_menu'),
             InlineKeyboardButton(emojize(':right_arrow:'), callback_data='banned_user_list_next') if order != total_segments else None
             ]
@@ -119,7 +119,7 @@ async def unban_user_process(update: Update, context: ContextTypes):
     text = emojize(f":bust_in_silhouette: <code>{escape(banned_user_name)}</code> <i>telah berhasil di <b>un-ban</b>!</i> :unlocked:")
 
     button_list = [
-            InlineKeyboardButton(emojize(':BACK_arrow'), callback_data='banned_user_list'),
+            InlineKeyboardButton(emojize(':BACK_arrow:'), callback_data='banned_user_list'),
             InlineKeyboardButton(emojize(':globe_with_meridians: Menu Admin :globe_with_meridians:'), callback_data='admin_menu')
             ]
 
