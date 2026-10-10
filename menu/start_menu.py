@@ -5,6 +5,7 @@ from data.database_config import DatabaseManager
 from utils.ui_utility import build_menu
 from utils.authorization import private, check_user_in_conversation, check_user_is_owners, check_user_is_banned
 from telegram.ext import ContextTypes
+from emoji import emojize
 
 @private
 @check_user_is_banned
@@ -29,15 +30,13 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         await DatabaseManager(db_path).insert_data('users', 'user_id', user_id=id_user, name=user_name, username=user_username)
 
-    text = "<b>Selamat Datang di UsernameShop</b>! \n"
-    text+= "~~~~~~~~~~~~~~~~~~~~~ \n"
-    text+= "Berikut menu utama di toko kami."
+    text = emojize("<b>Selamat Datang di UsernameShop</b>! :waving_hand:\n")
     button_list = [
-            InlineKeyboardButton("Beli Username", callback_data='order')
+            InlineKeyboardButton(emojize(":shopping_bags: Beli Username :shopping_bags:"), callback_data='order')
             ]
     if await check_user_is_owners(update, context):
         button_list += [
-                InlineKeyboardButton("Menu Admin", callback_data='admin_menu')
+                InlineKeyboardButton(emojize(":globe_with_meridians: Menu Admin :globe_with_meridians:"), callback_data='admin_menu')
                 ]
 
     reply_markup = InlineKeyboardMarkup(build_menu(button_list, n_cols = 1))
